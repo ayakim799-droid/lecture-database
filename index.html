@@ -2,101 +2,344 @@
 <!DOCTYPE html>
 <html lang="kk">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Электрондық дәрістер базасы</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f2f5fa;
-            margin: 0;
-            padding: 25px;
-        }
-        h1 { text-align: center; color: #23345a; }
-        .container { max-width: 850px; margin: auto; }
-        input {
-            width: 100%;
-            box-sizing: border-box;
-            padding: 13px;
-            margin-bottom: 20px;
-        }
-        .lecture {
-            background: white;
-            padding: 20px;
-            margin-bottom: 12px;
-            border-radius: 12px;
-        }
-        button {
-            background: #315bd6;
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-        .content { white-space: pre-wrap; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WEB БАҒДАРЛАМАЛАУ — Электрондық кітап</title>
+
+<style>
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: radial-gradient(circle at top, #304860, #101b2b);
+    color: #f5e9d3;
+    min-height: 100vh;
+}
+
+header {
+    text-align: center;
+    padding: 25px 15px 10px;
+}
+
+header small {
+    color: #e2b969;
+    letter-spacing: 3px;
+}
+
+h1 {
+    font-size: clamp(24px, 4vw, 40px);
+    margin: 12px 0;
+}
+
+header p { color: #cbd4dc; }
+
+.toolbar {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 15px;
+}
+
+button, .download {
+    background: #d9ae62;
+    color: #1c2530;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 15px;
+    font-weight: bold;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+input {
+    width: 75px;
+    padding: 11px;
+    border-radius: 7px;
+    border: none;
+}
+
+#counter {
+    min-width: 115px;
+    text-align: center;
+}
+
+.book-area {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 65vh;
+    padding: 15px;
+    overflow: hidden;
+}
+
+#book { margin: auto; }
+#book[hidden] { display: none; }
+
+.page {
+    background: white;
+    overflow: hidden;
+    box-shadow: inset 0 0 15px #0002;
+}
+
+.page img {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.cover {
+    background: linear-gradient(145deg, #183651, #0c1c2c);
+    border: 9px solid #b98b47;
+    color: #f9dfad;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 20px;
+}
+
+.cover-inner {
+    border: 1px solid #d7b06a;
+    padding: 20px;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 20px;
+}
+
+.cover h2 {
+    font-size: 30px;
+    line-height: 1.4;
+}
+
+.status, .hint {
+    text-align: center;
+    padding: 12px;
+    color: #d9bd89;
+}
+
+footer {
+    text-align: center;
+    color: #b6bdc6;
+    font-size: 12px;
+    padding: 20px;
+}
+
+@media(max-width:600px) {
+    .toolbar { gap: 6px; }
+    button { padding: 9px; }
+    .book-area { padding: 4px; }
+}
+</style>
 </head>
+
 <body>
-    <div class="container">
-        <h1>Электрондық дәрістер базасы</h1>
-        <input id="search" placeholder="Дәрісті іздеу...">
-        <div id="lectures"></div>
-    </div>
 
-    <script>
-        let lectures = [];
+<header>
+    <small>ЭЛЕКТРОНДЫҚ ОҚУЛЫҚ · 2026</small>
+    <h1>WEB БАҒДАРЛАМАЛАУ</h1>
+    <p>15 дәріс · Интерактивті кітап</p>
+</header>
 
-        async function loadLectures() {
-            try {
-                const response = await fetch("lectures.json");
-                if (!response.ok) throw new Error("Жүктеу қатесі");
-                lectures = await response.json();
-                showLectures();
-            } catch (error) {
-                document.getElementById("lectures").textContent =
-                    "Дәрістерді жүктеу мүмкін болмады.";
+<div class="toolbar">
+    <button id="prev" disabled>← Артқа</button>
+    <span id="counter">Жүктелуде...</span>
+    <button id="next" disabled>Алға →</button>
+
+    <input id="jump" type="number" min="1" placeholder="Бет">
+    <button id="go" disabled>Өту</button>
+
+    <button id="fullscreen">⛶ Толық экран</button>
+
+    <a class="download" href="book/backend.pdf" download>
+        ↓ PDF
+    </a>
+</div>
+
+<div class="status" id="loading">
+    Кітап беттері жүктелуде...
+</div>
+
+<main class="book-area" id="bookArea">
+    <div id="book" hidden></div>
+</main>
+
+<p class="hint">
+    Беттің шетін басып немесе сүйреп парақтаңыз.
+</p>
+
+<footer>
+    С. Сейфуллин атындағы Қазақ агротехникалық зерттеу университеті
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.js"></script>
+
+<script>
+(async function () {
+
+    const loading = document.getElementById("loading");
+    const book = document.getElementById("book");
+    const counter = document.getElementById("counter");
+
+    try {
+        if (!window.pdfjsLib || !window.St) {
+            throw new Error("Кітапхана жүктелмеді.");
+        }
+
+        pdfjsLib.GlobalWorkerOptions.workerSrc =
+            "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+
+        const response = await fetch("book/backend.pdf");
+
+        if (!response.ok) {
+            throw new Error("book/backend.pdf табылмады.");
+        }
+
+        const bytes = await response.arrayBuffer();
+
+        const pdf = await pdfjsLib.getDocument({
+            data: bytes
+        }).promise;
+
+        // Кітап мұқабасы
+        const cover = document.createElement("div");
+        cover.className = "page cover";
+        cover.dataset.density = "hard";
+
+        cover.innerHTML = `
+            <div class="cover-inner">
+                <span>ДӘРІСТЕР ЖИНАҒЫ</span>
+                <h2>WEB<br>БАҒДАРЛАМАЛАУ</h2>
+                <span>15 ДӘРІС</span>
+                <span>АСТАНА · 2026</span>
+            </div>
+        `;
+
+        book.appendChild(cover);
+
+        // PDF беттерін кітап беттеріне айналдыру
+        for (let n = 1; n <= pdf.numPages; n++) {
+
+            loading.textContent =
+                `Беттер жүктелуде: ${n} / ${pdf.numPages}`;
+
+            const page = await pdf.getPage(n);
+            const viewport = page.getViewport({ scale: 1.25 });
+
+            const canvas = document.createElement("canvas");
+            canvas.width = Math.round(viewport.width);
+            canvas.height = Math.round(viewport.height);
+
+            await page.render({
+                canvasContext: canvas.getContext("2d"),
+                viewport: viewport
+            }).promise;
+
+            const div = document.createElement("div");
+            div.className = "page";
+
+            const img = document.createElement("img");
+            img.alt = "Дәріс беті " + n;
+            img.src = canvas.toDataURL("image/jpeg", 0.85);
+
+            div.appendChild(img);
+            book.appendChild(div);
+
+            page.cleanup();
+
+            await new Promise(resolve => setTimeout(resolve, 0));
+        }
+
+        // Парақтау анимациясы
+        const flip = new St.PageFlip(book, {
+            width: 420,
+            height: 594,
+            size: "stretch",
+            minWidth: 250,
+            maxWidth: 420,
+            minHeight: 354,
+            maxHeight: 594,
+            showCover: true,
+            usePortrait: true,
+            autoSize: true,
+            maxShadowOpacity: 0.45,
+            mobileScrollSupport: false
+        });
+
+        flip.loadFromHTML(book.querySelectorAll(".page"));
+
+        book.hidden = false;
+        loading.style.display = "none";
+
+        const prev = document.getElementById("prev");
+        const next = document.getElementById("next");
+        const go = document.getElementById("go");
+        const jump = document.getElementById("jump");
+
+        function update() {
+            const i = flip.getCurrentPageIndex();
+
+            counter.textContent =
+                i === 0 ? "Мұқаба" : `Бет ${i} / ${pdf.numPages}`;
+
+            prev.disabled = i === 0;
+            next.disabled = i >= pdf.numPages;
+        }
+
+        flip.on("flip", update);
+
+        prev.onclick = () => flip.flipPrev();
+        next.onclick = () => flip.flipNext();
+
+        go.disabled = false;
+
+        go.onclick = () => {
+            const p = Number(jump.value);
+
+            if (Number.isInteger(p) &&
+                p >= 1 && p <= pdf.numPages) {
+                flip.flip(p);
             }
-        }
+        };
 
-        function showLectures() {
-            const list = document.getElementById("lectures");
-            const search = document.getElementById("search")
-                .value.toLowerCase();
+        document.getElementById("fullscreen").onclick = () => {
+            const area = document.getElementById("bookArea");
 
-            list.replaceChildren();
+            if (document.fullscreenElement) {
+                document.exitFullscreen();
+            } else {
+                area.requestFullscreen?.();
+            }
+        };
 
-            lectures.filter(lecture =>
-                lecture.title.toLowerCase().includes(search)
-            ).forEach(lecture => {
-                const card = document.createElement("div");
-                card.className = "lecture";
+        document.addEventListener("keydown", e => {
+            if (e.target.tagName === "INPUT") return;
 
-                const title = document.createElement("h3");
-                title.textContent = lecture.title;
+            if (e.key === "ArrowRight") flip.flipNext();
+            if (e.key === "ArrowLeft") flip.flipPrev();
+        });
 
-                const button = document.createElement("button");
-                button.textContent = "Ашу";
+        update();
 
-                const content = document.createElement("p");
-                content.className = "content";
-                content.textContent = lecture.content;
-                content.hidden = true;
+    } catch (error) {
+        loading.textContent = "Қате: " + error.message;
+        counter.textContent = "Қате";
+        console.error(error);
+    }
 
-                button.onclick = () => {
-                    content.hidden = !content.hidden;
-                    button.textContent = content.hidden ? "Ашу" : "Жабу";
-                };
+})();
+</script>
 
-                card.append(title, button, content);
-                list.appendChild(card);
-            });
-        }
-
-        document.getElementById("search")
-            .addEventListener("input", showLectures);
-
-        loadLectures();
-    </script>
 </body>
 </html>
