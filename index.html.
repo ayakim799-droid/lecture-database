@@ -1,0 +1,102 @@
+
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Электрондық дәрістер базасы</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f2f5fa;
+            margin: 0;
+            padding: 25px;
+        }
+        h1 { text-align: center; color: #23345a; }
+        .container { max-width: 850px; margin: auto; }
+        input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 13px;
+            margin-bottom: 20px;
+        }
+        .lecture {
+            background: white;
+            padding: 20px;
+            margin-bottom: 12px;
+            border-radius: 12px;
+        }
+        button {
+            background: #315bd6;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .content { white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Электрондық дәрістер базасы</h1>
+        <input id="search" placeholder="Дәрісті іздеу...">
+        <div id="lectures"></div>
+    </div>
+
+    <script>
+        let lectures = [];
+
+        async function loadLectures() {
+            try {
+                const response = await fetch("lectures.json");
+                if (!response.ok) throw new Error("Жүктеу қатесі");
+                lectures = await response.json();
+                showLectures();
+            } catch (error) {
+                document.getElementById("lectures").textContent =
+                    "Дәрістерді жүктеу мүмкін болмады.";
+            }
+        }
+
+        function showLectures() {
+            const list = document.getElementById("lectures");
+            const search = document.getElementById("search")
+                .value.toLowerCase();
+
+            list.replaceChildren();
+
+            lectures.filter(lecture =>
+                lecture.title.toLowerCase().includes(search)
+            ).forEach(lecture => {
+                const card = document.createElement("div");
+                card.className = "lecture";
+
+                const title = document.createElement("h3");
+                title.textContent = lecture.title;
+
+                const button = document.createElement("button");
+                button.textContent = "Ашу";
+
+                const content = document.createElement("p");
+                content.className = "content";
+                content.textContent = lecture.content;
+                content.hidden = true;
+
+                button.onclick = () => {
+                    content.hidden = !content.hidden;
+                    button.textContent = content.hidden ? "Ашу" : "Жабу";
+                };
+
+                card.append(title, button, content);
+                list.appendChild(card);
+            });
+        }
+
+        document.getElementById("search")
+            .addEventListener("input", showLectures);
+
+        loadLectures();
+    </script>
+</body>
+</html>
