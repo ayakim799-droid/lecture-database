@@ -12,14 +12,14 @@
 body {
     margin: 0;
     font-family: Arial, sans-serif;
-    background: radial-gradient(circle at top, #304860, #101b2b);
+    background: radial-gradient(circle at top, #344c63, #101b2b);
     color: #f5e9d3;
     min-height: 100vh;
 }
 
 header {
     text-align: center;
-    padding: 25px 15px 10px;
+    padding: 25px 12px 10px;
 }
 
 header small {
@@ -39,7 +39,7 @@ header p { color: #cbd4dc; }
     justify-content: center;
     align-items: center;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 9px;
     padding: 15px;
 }
 
@@ -48,7 +48,7 @@ button, .download {
     color: #1c2530;
     border: none;
     border-radius: 8px;
-    padding: 12px 15px;
+    padding: 11px 14px;
     font-weight: bold;
     cursor: pointer;
     text-decoration: none;
@@ -60,21 +60,21 @@ button:disabled {
 }
 
 input {
-    width: 75px;
-    padding: 11px;
+    width: 70px;
+    padding: 10px;
     border-radius: 7px;
     border: none;
 }
 
 #counter {
-    min-width: 115px;
+    min-width: 100px;
     text-align: center;
 }
 
 .book-area {
     display: flex;
-    align-items: center;
     justify-content: center;
+    align-items: center;
     min-height: 65vh;
     padding: 15px;
     overflow: hidden;
@@ -95,6 +95,7 @@ input {
     display: block;
 }
 
+/* Кітап мұқабасы */
 .cover {
     background: linear-gradient(145deg, #183651, #0c1c2c);
     border: 9px solid #b98b47;
@@ -122,7 +123,68 @@ input {
     line-height: 1.4;
 }
 
-.status, .hint {
+/* Кітап ішіндегі мазмұн */
+.toc-page {
+    background: #fffaf0;
+    color: #26384c;
+    padding: 20px 18px;
+    display: flex;
+    flex-direction: column;
+}
+
+.toc-page h2 {
+    font-family: Georgia, serif;
+    text-align: center;
+    font-size: 25px;
+    color: #80552a;
+    margin: 5px 0 15px;
+}
+
+.toc-list {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    gap: 2px;
+}
+
+.toc-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    width: 100%;
+    padding: 6px 3px;
+    border: none;
+    border-bottom: 1px dotted #c4ae90;
+    border-radius: 0;
+    background: transparent;
+    color: #26384c;
+    font-family: Georgia, serif;
+    font-size: 11px;
+    font-weight: normal;
+    text-align: left;
+    cursor: pointer;
+}
+
+.toc-link:hover {
+    background: #f0e0c4;
+    color: #85551f;
+}
+
+.toc-link strong {
+    color: #956328;
+    white-space: nowrap;
+}
+
+.toc-footer {
+    text-align: center;
+    font-size: 11px;
+    color: #997a50;
+    margin-top: 12px;
+}
+
+.status {
     text-align: center;
     padding: 12px;
     color: #d9bd89;
@@ -159,6 +221,7 @@ footer {
     <input id="jump" type="number" min="1" placeholder="Бет">
     <button id="go" disabled>Өту</button>
 
+    <button id="tocButton" disabled>☰ Мазмұны</button>
     <button id="fullscreen">⛶ Толық экран</button>
 
     <a class="download" href="book/backend.pdf" download>
@@ -174,10 +237,6 @@ footer {
     <div id="book" hidden></div>
 </main>
 
-<p class="hint">
-    Беттің шетін басып немесе сүйреп парақтаңыз.
-</p>
-
 <footer>
     С. Сейфуллин атындағы Қазақ агротехникалық зерттеу университеті
 </footer>
@@ -188,13 +247,92 @@ footer {
 <script>
 (async function () {
 
-    const loading = document.getElementById("loading");
+    // Дәрістер және PDF бетіндегі орналасуы
+    const chapters = [
+        {
+            number: 1,
+            title: "WEB-технологиялар негіздері. WEB стандарттары",
+            page: 2
+        },
+        {
+            number: 2,
+            title: "Интернет коммуникациясының моделі. Pull және Push",
+            page: 6
+        },
+        {
+            number: 3,
+            title: "Интернетке кіру. Соңғы миля. Модем",
+            page: 9
+        },
+        {
+            number: 4,
+            title: "DSL және ISDN технологиялары",
+            page: 12
+        },
+        {
+            number: 5,
+            title: "WEB-серверлер. CGI технологиясы. Скриптер",
+            page: 14
+        },
+        {
+            number: 6,
+            title: "WEB-ресурстарды алу. Кэштеу. Прокси-сервер",
+            page: 16
+        },
+        {
+            number: 7,
+            title: "Интернеттің іздеу технологиялары",
+            page: 18
+        },
+        {
+            number: 8,
+            title: "Электрондық пошта. E-mail сервисі",
+            page: 21
+        },
+        {
+            number: 9,
+            title: "Файлдармен алмасу. FTP сервисі",
+            page: 24
+        },
+        {
+            number: 10,
+            title: "Мәліметтерді қорғау. Цифрлық қолтаңба",
+            page: 26
+        },
+        {
+            number: 11,
+            title: "Пайдаланушыларды идентификациялау. Cookies",
+            page: 29
+        },
+        {
+            number: 12,
+            title: "HTML мультимедиясы. Фреймдер және формалар",
+            page: 37
+        },
+        {
+            number: 13,
+            title: "Стильдердің сатылы кестелері. CSS",
+            page: 41
+        },
+        {
+            number: 14,
+            title: "JavaScript тілі",
+            page: 45
+        },
+        {
+            number: 15,
+            title: "WEB-қосымшалар. HTTP, Perl және PHP",
+            page: 50
+        }
+    ];
+
     const book = document.getElementById("book");
+    const loading = document.getElementById("loading");
     const counter = document.getElementById("counter");
 
     try {
         if (!window.pdfjsLib || !window.St) {
-            throw new Error("Кітапхана жүктелмеді.");
+            throw new Error("Кітапханалар жүктелмеді.");
         }
 
         pdfjsLib.GlobalWorkerOptions.workerSrc =
@@ -212,7 +350,7 @@ footer {
             data: bytes
         }).promise;
 
-        // Кітап мұқабасы
+        // 1. Мұқаба
         const cover = document.createElement("div");
         cover.className = "page cover";
         cover.dataset.density = "hard";
@@ -228,7 +366,27 @@ footer {
 
         book.appendChild(cover);
 
-        // PDF беттерін кітап беттеріне айналдыру
+        // 2. Мазмұны
+        const toc = document.createElement("div");
+        toc.className = "page toc-page";
+
+        const tocTitle = document.createElement("h2");
+        tocTitle.textContent = "МАЗМҰНЫ";
+
+        const tocList = document.createElement("div");
+        tocList.className = "toc-list";
+
+        toc.appendChild(tocTitle);
+        toc.appendChild(tocList);
+
+        const tocFooter = document.createElement("div");
+        tocFooter.className = "toc-footer";
+        tocFooter.textContent = "Дәріс атауын басып, қажетті бетке өтіңіз.";
+        toc.appendChild(tocFooter);
+
+        book.appendChild(toc);
+
+        // PDF беттері
         for (let n = 1; n <= pdf.numPages; n++) {
 
             loading.textContent =
@@ -250,7 +408,7 @@ footer {
             div.className = "page";
 
             const img = document.createElement("img");
-            img.alt = "Дәріс беті " + n;
+            img.alt = "PDF беті " + n;
             img.src = canvas.toDataURL("image/jpeg", 0.85);
 
             div.appendChild(img);
@@ -261,7 +419,7 @@ footer {
             await new Promise(resolve => setTimeout(resolve, 0));
         }
 
-        // Парақтау анимациясы
+        // Кітап анимациясы
         const flip = new St.PageFlip(book, {
             width: 420,
             height: 594,
@@ -279,6 +437,38 @@ footer {
 
         flip.loadFromHTML(book.querySelectorAll(".page"));
 
+        // Мазмұндағы сілтемелер
+        chapters.forEach(chapter => {
+
+            const link = document.createElement("button");
+            link.type = "button";
+            link.className = "toc-link";
+
+            const title = document.createElement("span");
+            title.textContent =
+                chapter.number + ". " + chapter.title;
+
+            const pageNumber = document.createElement("strong");
+            pageNumber.textContent = chapter.page + "-бет";
+
+            link.append(title, pageNumber);
+
+            link.addEventListener("pointerdown", event => {
+                event.stopPropagation();
+            });
+
+            link.addEventListener("click", event => {
+                event.preventDefault();
+                event.stopPropagation();
+
+                // 0 — мұқаба, 1 — мазмұны,
+                // PDF бірінші беті — индекс 2
+                flip.flip(chapter.page + 1);
+            });
+
+            tocList.appendChild(link);
+        });
+
         book.hidden = false;
         loading.style.display = "none";
 
@@ -286,15 +476,22 @@ footer {
         const next = document.getElementById("next");
         const go = document.getElementById("go");
         const jump = document.getElementById("jump");
+        const tocButton = document.getElementById("tocButton");
 
         function update() {
             const i = flip.getCurrentPageIndex();
 
-            counter.textContent =
-                i === 0 ? "Мұқаба" : `Бет ${i} / ${pdf.numPages}`;
+            if (i === 0) {
+                counter.textContent = "Мұқаба";
+            } else if (i === 1) {
+                counter.textContent = "Мазмұны";
+            } else {
+                counter.textContent =
+                    "PDF беті " + (i - 1) + " / " + pdf.numPages;
+            }
 
             prev.disabled = i === 0;
-            next.disabled = i >= pdf.numPages;
+            next.disabled = i >= pdf.numPages + 1;
         }
 
         flip.on("flip", update);
@@ -302,14 +499,19 @@ footer {
         prev.onclick = () => flip.flipPrev();
         next.onclick = () => flip.flipNext();
 
+        tocButton.disabled = false;
+        tocButton.onclick = () => flip.flip(1);
+
         go.disabled = false;
-
         go.onclick = () => {
-            const p = Number(jump.value);
+            const page = Number(jump.value);
 
-            if (Number.isInteger(p) &&
-                p >= 1 && p <= pdf.numPages) {
-                flip.flip(p);
+            if (
+                Number.isInteger(page) &&
+                page >= 1 &&
+                page <= pdf.numPages
+            ) {
+                flip.flip(page + 1);
             }
         };
 
@@ -323,11 +525,16 @@ footer {
             }
         };
 
-        document.addEventListener("keydown", e => {
-            if (e.target.tagName === "INPUT") return;
+        document.addEventListener("keydown", event => {
+            if (event.target.tagName === "INPUT") return;
 
-            if (e.key === "ArrowRight") flip.flipNext();
-            if (e.key === "ArrowLeft") flip.flipPrev();
+            if (event.key === "ArrowRight") {
+                flip.flipNext();
+            }
+
+            if (event.key === "ArrowLeft") {
+                flip.flipPrev();
+            }
         });
 
         update();
